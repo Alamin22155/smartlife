@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Life - Better Habits, Healthier You</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Hind Siliguri', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#ff4d6d',
+                            600: '#e63946',
+                            700: '#c92a37',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #1e293b;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        /* Toast Animation */
+        .toast-enter {
+            animation: slideInRight 0.3s ease-out;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-scale-up {
+            animation: scaleUp 0.2s ease-out;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-spin-slow {
+            animation: spin 8s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-0 md:p-4 bg-slate-900">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none"></div>
+
+    <!-- Phone Mockup Container -->
+    <div class="w-full max-w-[430px] h-[100vh] md:h-[880px] bg-slate-100 md:rounded-[45px] shadow-2xl overflow-hidden flex flex-col relative border-0 md:border-[10px] border-slate-800">
+        
+        <div class="hidden md:flex justify-center items-center h-6 bg-slate-800 rounded-t-3xl pt-2 pb-1 z-50 shrink-0">
+            <div class="w-20 h-4 bg-black rounded-full flex items-center justify-end px-2">
+                <div class="w-2.5 h-2.5 bg-slate-800 rounded-full border border-slate-700"></div>
+            </div>
+        </div>
+
+        <div class="bg-white px-6 pt-2 pb-1 flex justify-between items-center text-xs font-semibold text-slate-700 z-40 shrink-0">
+            <span id="currentTime">10:24</span>
+            <div class="flex items-center gap-1.5">
+                <i class="fa-solid font-bold fa-wifi text-[11px]"></i>
+                <i class="fa-solid fa-signal text-[11px]"></i>
+                <span class="text-[10px]">87%</span>
+                <i class="fa-solid fa-battery-three-quarters text-sm text-green-600"></i>
+            </div>
+        </div>
+
+        <header class="bg-white px-5 py-2.5 flex items-center justify-between shadow-sm border-b border-slate-100 shrink-0 z-30">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-md shadow-brand-100">
+                    <i class="fa-solid fa-heart-pulse text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-brand-600 leading-tight">Smart Life</h1>
+                    <p class="text-[10px] text-slate-400 font-medium -mt-1" id="taglineText">Better Habits • Healthier You</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="bg-slate-100 p-0.5 rounded-full flex text-xs font-semibold border border-slate-200">
+                    <button id="langBn" onclick="setLanguage('bn')" class="px-2 py-0.5 rounded-full bg-brand-600 text-white shadow-sm transition-all">বাংলা</button>
+                    <button id="langEn" onclick="setLanguage('en')" class="px-2 py-0.5 rounded-full text-slate-600 transition-all">English</button>
+                </div>
+
+                <button onclick="toggleModal('notificationModal')" class="relative p-2 text-slate-600 hover:text-brand-600 transition">
+                    <i class="fa-regular fa-bell text-lg"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full animate-ping"></span>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
+                </button>
+
+                <div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-brand-200 cursor-pointer" onclick="setActiveTab('settings')">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Rafiq" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4 bg-slate-50/70" id="mainContainer">
+
+            <!-- TAB 1: HOME DASHBOARD -->
+            <div id="tabHome" class="tab-content space-y-4">
+                
+                <div class="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 p-3.5 rounded-2xl border border-amber-200/60 shadow-sm relative overflow-hidden flex items-center justify-between">
+                    <div class="z-10 max-w-[65%]">
+                        <div class="flex items-center gap-1.5 text-amber-600 font-bold text-sm mb-0.5">
+                            <i class="fa-solid fa-sun text-amber-500 animate-spin-slow"></i>
+                            <span id="greetingTitle">শুভ সকাল, রফিক!</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-snug" id="greetingSub">আজকের দিনটা হোক আরও উৎপাদনশীল ও সুস্থ।</p>
+                    </div>
+                    <div class="text-right border-l border-amber-200/80 pl-3 z-10">
+                        <div class="text-xs font-bold text-slate-700" id="dateDay">শনিবার</div>
+                        <div class="text-[11px] font-semibold text-brand-600" id="dateFull">১১ অক্টোবর ২০২৫</div>
+                        <div class="text-[10px] text-slate-400" id="dateBangla">২৫ আশ্বিন ১৪৩২</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="scrollToSection('tasksSection')" class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col items-center text-center group">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-brand-500 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-800 leading-tight" data-key="navTasks">দৈনন্দিন কাজ</span>
+                        <span class="text-[9px] text-slate-400" data-key="subTasks">Tasks</span>
+                    </button>
+
+                    <button onclick="scrollToSection('focusSection')" class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col items-center text-center group">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-800 leading-tight" data-key="navFocus">ফোকাস স্টুডিও</span>
+                        <span class="text-[9px] text-slate-400" data-key="subFocus">Focus</span>
+                    </button>
+
+                    <button onclick="scrollToSection('healthSection')" class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col items-center text-center group">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-800 leading-tight" data-key="navHealth">স্বাস্থ্য ও শক্তি</span>
+                        <span class="text-[9px] text-slate-400" data-key="subHealth">Health</span>
+                    </button>
+
+                    <button onclick="scrollToSection('aiSection')" class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col items-center text-center group">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-800 leading-tight" data-key="navAi">এআই কোচ</span>
+                        <span class="text-[9px] text-slate-400" data-key="subAi">AI Coach</span>
+                    </button>
+                </div>
+
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-red-100 text-brand-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+                            <h2 class="text-sm font-bold text-slate-800" data-key="financeTitle">প্রতিদিনের আয় - ব্যয়</h2>
+                        </div>
+                        <button onclick="toggleModal('addFinanceModal')" class="text-xs text-brand-600 font-semibold flex items-center gap-1 hover:underline">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span data-key="addFinanceBtn">লেনদেন যোগ করুন</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-100/80">
+                            <div class="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                                <i class="fa-solid fa-arrow-down-left text-emerald-600"></i>
+                                <span data-key="incomeLabel">মোট আয়</span>
+                            </div>
+                            <div class="text-sm font-extrabold text-slate-800 my-1" id="displayIncome">৳ ৫,০০০</div>
+                            <div class="text-[9px] text-emerald-700 font-medium flex items-center gap-0.5">
+                                <i class="fa-solid fa-arrow-up"></i>
+                                <span>+১,০০০</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-100/80">
+                            <div class="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                                <i class="fa-solid fa-arrow-up-right text-rose-500"></i>
+                                <span data-key="expenseLabel">মোট ব্যয়</span>
+                            </div>
+                            <div class="text-sm font-extrabold text-slate-800 my-1" id="displayExpense">৳ ৩,২০০</div>
+                            <div class="text-[9px] text-rose-600 font-medium flex items-center gap-0.5">
+                                <i class="fa-solid fa-arrow-down"></i>
+                                <span>-৫০০</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-teal-50/70 p-2.5 rounded-xl border border-teal-100/80">
+                            <div class="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                                <i class="fa-solid fa-vault text-teal-600"></i>
+                                <span data-key="balanceLabel">ব্যালেন্স</span>
+                            </div>
+                            <div class="text-sm font-extrabold text-slate-800 my-1" id="displayBalance">৳ ১,৮০০</div>
+                            <button onclick="setActiveTab('finance')" class="text-[9px] text-teal-700 font-bold flex items-center gap-0.5 hover:underline">
+                                <span data-key="details">বিস্তারিত</span>
+                                <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tasksSection" class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-red-100 text-brand-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-bullseye"></i>
+                            </div>
+                            <h2 class="text-sm font-bold text-slate-800" data-key="tasksTitle">আজকের কাজের তালিকা</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full" id="taskProgressBadge">২/৫ সম্পন্ন</span>
+                            <button onclick="toggleModal('addTaskModal')" class="w-6 h-6 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center text-xs hover:bg-brand-500 hover:text-white transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1" id="taskListContainer"></div>
+                </div>
+
+                <div id="focusSection" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-800" data-key="focusTitle">Focus Studio</h2>
+                            <p class="text-[11px] text-slate-400" data-key="focusSub">মনোযোগ বাড়ান, লক্ষ্য অর্জন করুন</p>
+                        </div>
+                        <div class="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+                            <button id="modePomodoro" onclick="setTimerMode('pomodoro')" class="px-2.5 py-1 rounded-lg bg-brand-500 text-white shadow-sm">Pomodoro</button>
+                            <button id="modeBreak" onclick="setTimerMode('break')" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900">Short Break</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-around py-2">
+                        <div class="relative w-28 h-28 flex items-center justify-center">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle class="text-slate-100" stroke-width="8" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                                <circle id="timerProgressCircle" class="text-brand-500 progress-ring__circle" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                            </svg>
+                            <div class="absolute text-center">
+                                <span id="timerDisplay" class="text-xl font-extrabold text-slate-800 tracking-tight block">25:00</span>
+                                <span class="text-[9px] text-slate-400 uppercase font-semibold tracking-wider">Focus Time</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <button id="timerToggleBtn" onclick="toggleTimer()" class="w-12 h-12 rounded-full bg-brand-500 text-white text-lg flex items-center justify-center shadow-lg shadow-brand-200 hover:scale-105 active:scale-95 transition">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </button>
+                            <button onclick="resetTimer()" class="w-12 h-10 rounded-xl bg-slate-100 text-slate-600 text-xs flex items-center justify-center font-semibold hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-rotate-right mr-1"></i>
+                                <span data-key="reset">রিসেট</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="healthSection" class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-500 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                            <h2 class="text-sm font-bold text-slate-800" data-key="healthTitle">আজকের স্বাস্থ্য</h2>
+                        </div>
+                        <button onclick="setActiveTab('health')" class="text-xs text-brand-600 font-semibold hover:underline" data-key="viewAll">সব দেখুন</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="bg-rose-50/50 p-3 rounded-2xl border border-rose-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-md shadow-rose-200">
+                                <i class="fa-solid fa-heart-pulse animate-pulse"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-slate-500 font-medium" data-key="bpmLabel">হৃদস্পন্দন</div>
+                                <div class="text-base font-extrabold text-slate-800"><span id="bpmVal">72</span> <span class="text-xs font-normal">bpm</span></div>
+                                <span class="inline-block text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded font-semibold" data-key="normal">স্বাভাবিক</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center text-lg shadow-md shadow-indigo-200">
+                                <i class="fa-solid fa-moon"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-slate-500 font-medium" data-key="sleepLabel">ঘুম</div>
+                                <div class="text-base font-extrabold text-slate-800">7h 15m</div>
+                                <span class="inline-block text-[9px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded font-semibold" data-key="good">ভালো</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50/50 p-3 rounded-2xl border border-amber-100 flex items-center gap-3 relative overflow-hidden group">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-md shadow-amber-200 shrink-0">
+                                <i class="fa-solid fa-shoe-prints"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-[11px] text-slate-500 font-medium" data-key="stepsLabel">পদক্ষেপ</div>
+                                <div class="text-base font-extrabold text-slate-800" id="stepsVal">4,850</div>
+                                <div class="text-[9px] text-slate-400"><span data-key="goal">লক্ষ্য:</span> 10,000</div>
+                            </div>
+                            <button onclick="addSteps()" class="w-6 h-6 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center text-xs hover:bg-amber-500 hover:text-white transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <div class="bg-cyan-50/50 p-3 rounded-2xl border border-cyan-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500 text-white flex items-center justify-center text-lg shadow-md shadow-cyan-200 shrink-0">
+                                <i class="fa-solid fa-glass-water"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-[11px] text-slate-500 font-medium" data-key="waterLabel">পানি পান</div>
+                                <div class="text-base font-extrabold text-slate-800"><span id="waterVal">1.5</span> L</div>
+                                <span class="inline-block text-[9px] bg-cyan-100 text-cyan-700 px-1.5 py-0.2 rounded font-semibold" data-key="good">ভালো</span>
+                            </div>
+                            <button onclick="addWater()" class="w-6 h-6 rounded-full bg-cyan-200 text-cyan-800 flex items-center justify-center text-xs hover:bg-cyan-500 hover:text-white transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aiSection" class="bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-700 text-white p-4 rounded-2xl shadow-lg relative overflow-hidden space-y-3">
+                    <div class="flex items-center justify-between z-10 relative">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm">AI Coach</h3>
+                                <p class="text-[10px] text-purple-200" data-key="aiSub">Gemini চালিত পার্সোনাল অ্যাসিস্ট্যান্ট</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">Active</span>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/15 text-xs leading-relaxed" id="aiTipContainer">
+                        <p id="aiTipText">"আজ আপনার ৪,৮৫০ কদম হাঁটা সম্পন্ন হয়েছে। আরও সুস্থ থাকতে এখন ৫০০ মিলি পানি পান করুন এবং ১০ মিনিট হালকা স্ট্রেচিং করুন।"</p>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="text" id="aiQueryInput" placeholder="আপনার আজকের স্বাস্থ্য বা কাজ নিয়ে প্রশ্ন করুন..." class="flex-1 bg-white/20 placeholder-purple-200 text-xs px-3 py-2 rounded-xl border border-white/20 text-white focus:outline-none focus:bg-white/30 transition">
+                        <button onclick="askAiCoach()" class="bg-white text-purple-700 font-bold px-3 py-2 rounded-xl text-xs shadow hover:bg-purple-100 transition flex items-center gap-1">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span data-key="askBtn">পরামর্শ</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB 2: TASKS SCREEN -->
+            <div id="tabTasks" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <h2 class="text-base font-bold text-slate-800 mb-1" data-key="allTasksTitle">সকল কাজের তালিকা</h2>
+                    <p class="text-xs text-slate-400 mb-4" data-key="allTasksSub">আপনার প্রতিদিনের অভ্যাস এবং লক্ষ্য পরিচালনা করুন</p>
+                    
+                    <div class="space-y-2.5" id="fullTaskList"></div>
+
+                    <button onclick="toggleModal('addTaskModal')" class="w-full mt-4 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-xl shadow-md hover:bg-brand-600 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span data-key="addNewTaskBtn">নতুন কাজ যোগ করুন</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 3: HEALTH SCREEN -->
+            <div id="tabHealth" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <h2 class="text-base font-bold text-slate-800" data-key="healthDashboardTitle">স্বাস্থ্য রিপোর্ট ও ট্র্যাকিং</h2>
+                    
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                        <div class="text-xs font-bold text-slate-700 mb-2" data-key="weeklyWaterTitle">সাপ্তাহিক ওয়াটার ইনটেক (লিটার)</div>
+                        <div class="flex items-end justify-between h-28 pt-4 px-2">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-400 rounded-t-md h-12"></div>
+                                <span class="text-[10px] text-slate-500" data-key="daySat">শনি</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-400 rounded-t-md h-16"></div>
+                                <span class="text-[10px] text-slate-500" data-key="daySun">রবি</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-500 rounded-t-md h-20"></div>
+                                <span class="text-[10px] text-slate-500" data-key="dayMon">সোম</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-400 rounded-t-md h-14"></div>
+                                <span class="text-[10px] text-slate-500" data-key="dayTue">মঙ্গল</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-400 rounded-t-md h-18"></div>
+                                <span class="text-[10px] text-slate-500" data-key="dayWed">বুধ</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-400 rounded-t-md h-10"></div>
+                                <span class="text-[10px] text-slate-500" data-key="dayThu">বৃহ</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-6 bg-cyan-600 rounded-t-md h-24"></div>
+                                <span class="text-[10px] font-bold text-brand-600" data-key="dayToday">আজ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="p-3 bg-rose-50 rounded-xl flex justify-between items-center text-xs">
+                            <span class="font-semibold text-slate-700" data-key="avgBP">গড় রক্তচাপ</span>
+                            <span class="font-bold text-rose-600" data-key="avgBPVal">120/80 mmHg (স্বাভাবিক)</span>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-xl flex justify-between items-center text-xs">
+                            <span class="font-semibold text-slate-700" data-key="avgSleep">গড় ঘুমের সময়</span>
+                            <span class="font-bold text-indigo-600" data-key="avgSleepVal">7 ঘণ্টা ২০ মিনিট</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: FINANCE SCREEN -->
+            <div id="tabFinance" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-base font-bold text-slate-800" data-key="financeHistoryTitle">লেনদেনের ইতিহাস</h2>
+                        <button onclick="toggleModal('addFinanceModal')" class="px-3 py-1 bg-brand-500 text-white rounded-lg text-xs font-bold shadow" data-key="newBtn">+ নতুন</button>
+                    </div>
+
+                    <div class="space-y-2" id="financeLogsList"></div>
+                </div>
+            </div>
+
+            <!-- TAB 5: MORE / SETTINGS SCREEN -->
+            <div id="tabSettings" class="tab-content hidden space-y-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Rafiq" class="w-12 h-12 rounded-full object-cover border-2 border-brand-500">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800">রফিক আহমেদ</h3>
+                            <p class="text-xs text-slate-400">rafiq.smartlife@example.com</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-xs font-medium text-slate-700">
+                        <div class="p-3 bg-slate-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-100">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-bell text-brand-500"></i> <span data-key="settingsNotif">নোটিফিকেশন সেটিংস</span></span>
+                            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-100">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-brand-500"></i> <span data-key="settingsPrivacy">প্রাইভেসি ও সিকিউরিটি</span></span>
+                            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-100" onclick="showToast('Smart Life v2.4.1 - Developed for Google Gemini Canvas', 'info')">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-circle-info text-brand-500"></i> <span data-key="settingsAbout">অ্যাপ সম্পর্কে</span></span>
+                            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                        </div>
+                        <div class="p-3 bg-rose-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-rose-100" onclick="resetAllData()">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-trash text-rose-500"></i> <span data-key="settingsReset">ডেটা রিসেট করুন</span></span>
+                            <i class="fa-solid fa-chevron-right text-rose-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bg-white border-t border-slate-200/80 px-4 py-2 flex justify-between items-center z-40 shrink-0">
+            <button onclick="setActiveTab('home')" id="navBtnHome" class="nav-tab active flex flex-col items-center gap-0.5 text-brand-600 transition">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-bold" data-key="navHome">হোম</span>
+            </button>
+
+            <button onclick="setActiveTab('tasks')" id="navBtnTasks" class="nav-tab flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+                <i class="fa-solid fa-square-check text-lg"></i>
+                <span class="text-[10px] font-semibold" data-key="navTasksShort">কাজ</span>
+            </button>
+
+            <button onclick="setActiveTab('health')" id="navBtnHealth" class="nav-tab flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+                <i class="fa-solid fa-heart text-lg"></i>
+                <span class="text-[10px] font-semibold" data-key="navHealthShort">স্বাস্থ্য</span>
+            </button>
+
+            <button onclick="setActiveTab('finance')" id="navBtnFinance" class="nav-tab flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+                <i class="fa-solid fa-wallet text-lg"></i>
+                <span class="text-[10px] font-semibold" data-key="navFinance">আর্থিক</span>
+            </button>
+
+            <button onclick="setActiveTab('settings')" id="navBtnSettings" class="nav-tab flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+                <i class="fa-solid fa-ellipsis text-lg"></i>
+                <span class="text-[10px] font-semibold" data-key="navMore">আরও</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL 1: ADD NEW TASK MODAL -->
+    <div id="addTaskModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-4 animate-scale-up">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm" data-key="modalAddTask">নতুন কাজ যোগ করুন</h3>
+                <button onclick="toggleModal('addTaskModal')" class="text-slate-400 text-lg">&times;</button>
+            </div>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-600 font-semibold mb-1" data-key="labelTaskTitle">কাজের শিরোনাম</label>
+                    <input type="text" id="newTaskTitleInput" placeholder="যেমন: সকালে হাঁটাহাঁটি..." class="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-slate-600 font-semibold mb-1" data-key="labelTaskTime">সময় (Time)</label>
+                    <input type="text" id="newTaskTimeInput" placeholder="যেমন: ৭:০০ AM" class="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+            </div>
+
+            <button onclick="addNewTask()" class="w-full py-2.5 bg-brand-500 text-white rounded-xl font-bold text-xs shadow-md" data-key="btnAdd">যোগ করুন</button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ADD FINANCE TRANSACTION MODAL -->
+    <div id="addFinanceModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-4 animate-scale-up">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm" data-key="modalAddFinance">নতুন লেনদেন যোগ করুন</h3>
+                <button onclick="toggleModal('addFinanceModal')" class="text-slate-400 text-lg">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-600 font-semibold mb-1" data-key="labelFinanceType">ধরণ (Type)</label>
+                    <select id="financeType" class="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none">
+                        <option value="income" data-key="optIncome">আয় (Income)</option>
+                        <option value="expense" data-key="optExpense">ব্যয় (Expense)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-600 font-semibold mb-1" data-key="labelFinanceDesc">বিবরণ (Description)</label>
+                    <input type="text" id="financeTitle" placeholder="যেমন: ফ্রিল্যান্সিং / শপিং" class="w-full p-2.5 rounded-xl border border-slate-200">
+                </div>
+                <div>
+                    <label class="block text-slate-600 font-semibold mb-1" data-key="labelFinanceAmount">পরিমাণ (Amount ৳)</label>
+                    <input type="number" id="financeAmount" placeholder="500" class="w-full p-2.5 rounded-xl border border-slate-200">
+                </div>
+            </div>
+
+            <button onclick="addFinanceLog()" class="w-full py-2.5 bg-brand-500 text-white rounded-xl font-bold text-xs" data-key="btnSave">সংরক্ষণ করুন</button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: NOTIFICATIONS -->
+    <div id="notificationModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-3 animate-scale-up">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm" data-key="modalNotif">নোটিফিকেশন</h3>
+                <button onclick="toggleModal('notificationModal')" class="text-slate-400 text-lg">&times;</button>
+            </div>
+            <div class="space-y-2 text-xs">
+                <div class="p-2.5 bg-brand-50 rounded-xl border border-brand-100 flex items-start gap-2">
+                    <i class="fa-solid fa-glass-water text-cyan-600 mt-0.5"></i>
+                    <div>
+                        <div class="font-bold text-slate-800" data-key="notifWaterTitle">পানি পানের সময় হয়েছে!</div>
+                        <div class="text-[10px] text-slate-500" data-key="notifWaterBody">আপনার দৈনিক লক্ষ্যের ১.৫ লিটার বাকি।</div>
+                    </div>
+                </div>
+                <div class="p-2.5 bg-purple-50 rounded-xl border border-purple-100 flex items-start gap-2">
+                    <i class="fa-solid fa-robot text-purple-600 mt-0.5"></i>
+                    <div>
+                        <div class="font-bold text-slate-800" data-key="notifAiTitle">AI Coach টিপস</div>
+                        <div class="text-[10px] text-slate-500" data-key="notifAiBody">আজ রাতের ঘুম ভালো করতে ৮টার পর ক্যাফেইন এড়িয়ে চলুন।</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== State Management =====
+        let currentLang = 'bn';
+        let totalIncome = 5000;
+        let totalExpense = 3200;
+        let waterIntake = 1.5;
+        let stepCount = 4850;
+
+        // Pomodoro State
+        let timerInterval = null;
+        let timerSeconds = 25 * 60;
+        let totalTimerSeconds = 25 * 60;
+        let isTimerRunning = false;
+        let timerMode = 'pomodoro';
+
+        // Initial Data
+        let tasks = [
+            { id: 1, title: 'সকালে পানি পান', titleEn: 'Morning Water', time: '৯:০০ AM', completed: true },
+            { id: 2, title: 'বই পড়া', titleEn: 'Reading Book', time: '৯:০০ AM', completed: true },
+            { id: 3, title: 'ব্যায়াম', titleEn: 'Exercise', time: '৬:০০ PM', completed: false },
+            { id: 4, title: 'কোডিং শেখা', titleEn: 'Learn Coding', time: '৮:০০ PM', completed: false },
+            { id: 5, title: 'পরিবারের সাথে সময়', titleEn: 'Family Time', time: '৯:৩০ PM', completed: false }
+        ];
+
+        let financeLogs = [
+            { id: 1, title: 'প্রজেক্ট পেমেন্ট', titleEn: 'Project Payment', amount: 5000, type: 'income', time: 'সকাল ১০:০০' },
+            { id: 2, title: 'গ্রোসারি বাজার', titleEn: 'Grocery', amount: 2200, type: 'expense', time: 'দুপুর ১২:৩০' },
+            { id: 3, title: 'কফি ও স্ন্যাক্স', titleEn: 'Coffee & Snacks', amount: 1000, type: 'expense', time: 'বিকেল ৪:১৫' }
+        ];
+
+        // ===== Translation Dictionary =====
+        const translations = {
+            bn: {
+                tagline: "Better Habits • Healthier You",
+                greeting: "শুভ সকাল, রফিক!",
+                greetingSub: "আজকের দিনটা হোক আরও উৎপাদনশীল ও সুস্থ।",
+                navTasks: "দৈনন্দিন কাজ", navFocus: "ফোকাস স্টুডিও", navHealth: "স্বাস্থ্য ও শক্তি", navAi: "এআই কোচ",
+                subTasks: "Tasks", subFocus: "Focus", subHealth: "Health", subAi: "AI Coach",
+                financeTitle: "প্রতিদিনের আয় - ব্যয়", addFinanceBtn: "লেনদেন যোগ করুন",
+                incomeLabel: "মোট আয়", expenseLabel: "মোট ব্যয়", balanceLabel: "ব্যালেন্স", details: "বিস্তারিত",
+                tasksTitle: "আজকের কাজের তালিকা", focusTitle: "Focus Studio", focusSub: "মনোযোগ বাড়ান, লক্ষ্য অর্জন করুন",
+                healthTitle: "আজকের স্বাস্থ্য", viewAll: "সব দেখুন",
+                bpmLabel: "হৃদস্পন্দন", sleepLabel: "ঘুম", stepsLabel: "পদক্ষেপ", waterLabel: "পানি পান",
+                normal: "স্বাভাবিক", good: "ভালো", goal: "লক্ষ্য:",
+                aiSub: "Gemini চালিত পার্সোনাল অ্যাসিস্ট্যান্ট", askBtn: "পরামর্শ",
+                reset: "রিসেট",
+                allTasksTitle: "সকল কাজের তালিকা", allTasksSub: "আপনার প্রতিদিনের অভ্যাস এবং লক্ষ্য পরিচালনা করুন", addNewTaskBtn: "নতুন কাজ যোগ করুন",
+                healthDashboardTitle: "স্বাস্থ্য রিপোর্ট ও ট্র্যাকিং", weeklyWaterTitle: "সাপ্তাহিক ওয়াটার ইনটেক (লিটার)",
+                daySat: "শনি", daySun: "রবি", dayMon: "সোম", dayTue: "মঙ্গল", dayWed: "বুধ", dayThu: "বৃহ", dayToday: "আজ",
+                avgBP: "গড় রক্তচাপ", avgBPVal: "120/80 mmHg (স্বাভাবিক)", avgSleep: "গড় ঘুমের সময়", avgSleepVal: "7 ঘণ্টা ২০ মিনিট",
+                financeHistoryTitle: "লেনদেনের ইতিহাস", newBtn: "+ নতুন",
+                settingsNotif: "নোটিফিকেশন সেটিংস", settingsPrivacy: "প্রাইভেসি ও সিকিউরিটি", settingsAbout: "অ্যাপ সম্পর্কে", settingsReset: "ডেটা রিসেট করুন",
+                navHome: "হোম", navTasksShort: "কাজ", navHealthShort: "স্বাস্থ্য", navFinance: "আর্থিক", navMore: "আরও",
+                modalAddTask: "নতুন কাজ যোগ করুন", labelTaskTitle: "কাজের শিরোনাম", labelTaskTime: "সময় (Time)", btnAdd: "যোগ করুন",
+                modalAddFinance: "নতুন লেনদেন যোগ করুন", labelFinanceType: "ধরণ (Type)", labelFinanceDesc: "বিবরণ (Description)", labelFinanceAmount: "পরিমাণ (Amount ৳)", btnSave: "সংরক্ষণ করুন",
+                optIncome: "আয় (Income)", optExpense: "ব্যয় (Expense)",
+                modalNotif: "নোটিফিকেশন", notifWaterTitle: "পানি পানের সময় হয়েছে!", notifWaterBody: "আপনার দৈনিক লক্ষ্যের ১.৫ লিটার বাকি।",
+                notifAiTitle: "AI Coach টিপস", notifAiBody: "আজ রাতের ঘুম ভালো করতে ৮টার পর ক্যাফেইন এড়িয়ে চলুন।"
+            },
+            en: {
+                tagline: "Better Habits • Healthier You",
+                greeting: "Good Morning, Rafiq!",
+                greetingSub: "Let's make today productive and healthy.",
+                navTasks: "Daily Tasks", navFocus: "Focus Studio", navHealth: "Health & Vitality", navAi: "AI Coach",
+                subTasks: "Tasks", subFocus: "Focus", subHealth: "Health", subAi: "AI Coach",
+                financeTitle: "Daily Income & Expense", addFinanceBtn: "Add Transaction",
+                incomeLabel: "Total Income", expenseLabel: "Total Expense", balanceLabel: "Balance", details: "Details",
+                tasksTitle: "Today's Task List", focusTitle: "Focus Studio", focusSub: "Stay focused, reach your goal",
+                healthTitle: "Today's Health", viewAll: "View All",
+                bpmLabel: "Heart Rate", sleepLabel: "Sleep", stepsLabel: "Steps", waterLabel: "Water Intake",
+                normal: "Normal", good: "Good", goal: "Goal:",
+                aiSub: "Gemini-powered personal assistant", askBtn: "Ask AI",
+                reset: "Reset",
+                allTasksTitle: "All Tasks", allTasksSub: "Manage your daily habits and goals", addNewTaskBtn: "Add New Task",
+                healthDashboardTitle: "Health Report & Tracking", weeklyWaterTitle: "Weekly Water Intake (Liters)",
+                daySat: "Sat", daySun: "Sun", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayToday: "Today",
+                avgBP: "Average BP", avgBPVal: "120/80 mmHg (Normal)", avgSleep: "Average Sleep", avgSleepVal: "7h 20m",
+                financeHistoryTitle: "Transaction History", newBtn: "+ New",
+                settingsNotif: "Notification Settings", settingsPrivacy: "Privacy & Security", settingsAbout: "About App", settingsReset: "Reset Data",
+                navHome: "Home", navTasksShort: "Tasks", navHealthShort: "Health", navFinance: "Finance", navMore: "More",
+                modalAddTask: "Add New Task", labelTaskTitle: "Task Title", labelTaskTime: "Time", btnAdd: "Add",
+                modalAddFinance: "Add New Transaction", labelFinanceType: "Type", labelFinanceDesc: "Description", labelFinanceAmount: "Amount (৳)", btnSave: "Save",
+                optIncome: "Income", optExpense: "Expense",
+                modalNotif: "Notifications", notifWaterTitle: "Time to drink water!", notifWaterBody: "You still need 1.5L to reach your daily goal.",
+                notifAiTitle: "AI Coach Tip", notifAiBody: "Avoid caffeine after 8 PM for better sleep tonight."
+            }
+        };
+
+        // ===== Toast Notification System =====
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-500',
+                error: 'bg-rose-500',
+                info: 'bg-indigo-500',
+                warning: 'bg-amber-500'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-xmark',
+                info: 'fa-circle-info',
+                warning: 'fa-triangle-exclamation'
+            };
+            toast.className = `${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 toast-enter pointer-events-auto max-w-[300px]`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s, transform 0.3s';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+
+        // ===== LocalStorage Persistence =====
+        function saveState() {
+            try {
+                localStorage.setItem('smartlife_state', JSON.stringify({
+                    tasks, financeLogs, totalIncome, totalExpense, waterIntake, stepCount, currentLang
+                }));
+            } catch(e) { console.warn('Save failed:', e); }
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('smartlife_state');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.tasks) tasks = data.tasks;
+                    if (data.financeLogs) financeLogs = data.financeLogs;
+                    if (typeof data.totalIncome === 'number') totalIncome = data.totalIncome;
+                    if (typeof data.totalExpense === 'number') totalExpense = data.totalExpense;
+                    if (typeof data.waterIntake === 'number') waterIntake = data.waterIntake;
+                    if (typeof data.stepCount === 'number') stepCount = data.stepCount;
+                    if (data.currentLang) currentLang = data.currentLang;
+                }
+            } catch(e) { console.warn('Load failed:', e); }
+        }
+
+        function resetAllData() {
+            if (confirm(currentLang === 'bn' ? 'সব ডেটা রিসেট করতে চান?' : 'Reset all data?')) {
+                localStorage.removeItem('smartlife_state');
+                tasks = [
+                    { id: 1, title: 'সকালে পানি পান', titleEn: 'Morning Water', time: '৯:০০ AM', completed: true },
+                    { id: 2, title: 'বই পড়া', titleEn: 'Reading Book', time: '৯:০০ AM', completed: true },
+                    { id: 3, title: 'ব্যায়াম', titleEn: 'Exercise', time: '৬:০০ PM', completed: false }
+                ];
+                financeLogs = [];
+                totalIncome = 0;
+                totalExpense = 0;
+                waterIntake = 0;
+                stepCount = 0;
+                saveState();
+                renderTasks();
+                renderFinanceLogs();
+                updateFinanceDisplay();
+                document.getElementById('waterVal').innerText = waterIntake;
+                document.getElementById('stepsVal').innerText = stepCount;
+                showToast(currentLang === 'bn' ? 'ডেটা রিসেট হয়েছে' : 'Data reset', 'success');
+            }
+        }
+
+        // ===== Initialize App =====
+        window.onload = function() {
+            loadState();
+            renderTasks();
+            renderFinanceLogs();
+            updateFinanceDisplay();
+            updateTimerDisplay();
+            startLiveClock();
+            if (currentLang === 'en') setLanguage('en');
+        };
+
+        // ===== Live Clock =====
+        function startLiveClock() {
+            const update = () => {
+                const now = new Date();
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+                hours = hours < 10 ? '0' + hours : hours;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                document.getElementById('currentTime').innerText = `${hours}:${minutes}`;
+            };
+            update();
+            setInterval(update, 1000);
+        }
+
+        // ===== Language Switcher =====
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            if(lang === 'en') {
+                document.getElementById('langBn').className = "px-2 py-0.5 rounded-full text-slate-600 transition-all";
+                document.getElementById('langEn').className = "px-2 py-0.5 rounded-full bg-brand-600 text-white shadow-sm transition-all";
+                document.getElementById('dateDay').innerText = "Saturday";
+                document.getElementById('dateFull').innerText = "Oct 11, 2025";
+                document.getElementById('dateBangla').innerText = "Autumn Season";
+            } else {
+                document.getElementById('langEn').className = "px-2 py-0.5 rounded-full text-slate-600 transition-all";
+                document.getElementById('langBn').className = "px-2 py-0.5 rounded-full bg-brand-600 text-white shadow-sm transition-all";
+                document.getElementById('dateDay').innerText = "শনিবার";
+                document.getElementById('dateFull').innerText = "১১ অক্টোবর ২০২৫";
+                document.getElementById('dateBangla').innerText = "২৫ আশ্বিন ১৪৩২";
+            }
+
+            document.getElementById('greetingTitle').innerText = t.greeting;
+            document.getElementById('greetingSub').innerText = t.greetingSub;
+
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (t[key]) el.innerText = t[key];
+            });
+
+            renderTasks();
+            renderFinanceLogs();
+            saveState();
+        }
+
+        // ===== Tab Navigation =====
+        function setActiveTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('text-brand-600', 'active');
+                el.classList.add('text-slate-400');
+            });
+
+            const map = {
+                home: ['tabHome', 'navBtnHome'],
+                tasks: ['tabTasks', 'navBtnTasks'],
+                health: ['tabHealth', 'navBtnHealth'],
+                finance: ['tabFinance', 'navBtnFinance'],
+                settings: ['tabSettings', 'navBtnSettings']
+            };
+            if (map[tabName]) {
+                document.getElementById(map[tabName][0]).classList.remove('hidden');
+                document.getElementById(map[tabName][1]).classList.add('text-brand-600', 'active');
+            }
+        }
+
+        function scrollToSection(sectionId) {
+            setActiveTab('home');
+            setTimeout(() => {
+                const target = document.getElementById(sectionId);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // ===== Tasks Logic =====
+        function renderTasks() {
+            const container = document.getElementById('taskListContainer');
+            const fullList = document.getElementById('fullTaskList');
+            container.innerHTML = '';
+            fullList.innerHTML = '';
+
+            let completedCount = tasks.filter(t => t.completed).length;
+            const badgeText = currentLang === 'bn' 
+                ? `${completedCount}/${tasks.length} সম্পন্ন` 
+                : `${completedCount}/${tasks.length} Done`;
+            document.getElementById('taskProgressBadge').innerText = badgeText;
+
+            tasks.forEach(task => {
+                const displayTitle = currentLang === 'en' ? (task.titleEn || task.title) : task.title;
+
+                // Horizontal card
+                const card = document.createElement('div');
+                card.className = `min-w-[130px] p-3 rounded-2xl border flex flex-col justify-between cursor-pointer transition-all ${
+                    task.completed 
+                    ? 'bg-emerald-50/60 border-emerald-200/80 text-emerald-900' 
+                    : 'bg-slate-50 border-slate-200/70 text-slate-800'
+                }`;
+                card.onclick = () => toggleTask(task.id);
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-5 h-5 rounded-md flex items-center justify-center text-xs ${
+                            task.completed ? 'bg-emerald-500 text-white' : 'border border-slate-300 bg-white'
+                        }">
+                            ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+                        </div>
+                        <span class="text-[9px] text-slate-400 font-medium">${task.time}</span>
+                    </div>
+                    <div class="text-xs font-bold leading-tight ${task.completed ? 'line-through text-slate-400' : ''}">
+                        ${displayTitle}
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Full list item
+                const fullItem = document.createElement('div');
+                fullItem.className = `p-3 rounded-xl border flex items-center justify-between cursor-pointer ${
+                    task.completed ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'
+                }`;
+                fullItem.onclick = () => toggleTask(task.id);
+                fullItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-md flex items-center justify-center text-xs ${
+                            task.completed ? 'bg-emerald-500 text-white' : 'border border-slate-400 bg-white'
+                        }">
+                            ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}">${displayTitle}</div>
+                            <div class="text-[10px] text-slate-400">${task.time}</div>
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="text-slate-400 hover:text-rose-500 text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                fullList.appendChild(fullItem);
+            });
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            renderTasks();
+            saveState();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+            saveState();
+            showToast(currentLang === 'bn' ? 'কাজ মুছে ফেলা হয়েছে' : 'Task deleted', 'info');
+        }
+
+        function addNewTask() {
+            const title = document.getElementById('newTaskTitleInput').value.trim();
+            const time = document.getElementById('newTaskTimeInput').value.trim() || (currentLang === 'bn' ? 'আজ' : 'Today');
+            if (!title) {
+                showToast(currentLang === 'bn' ? 'কাজের শিরোনাম দিন' : 'Enter task title', 'warning');
+                return;
+            }
+            tasks.push({ id: Date.now(), title, titleEn: title, time, completed: false });
+            document.getElementById('newTaskTitleInput').value = '';
+            document.getElementById('newTaskTimeInput').value = '';
+            toggleModal('addTaskModal');
+            renderTasks();
+            saveState();
+            showToast(currentLang === 'bn' ? 'নতুন কাজ যোগ হয়েছে' : 'Task added', 'success');
+        }
+
+        // ===== Pomodoro Timer =====
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timerDisplay').innerText = 
+                `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            const circle = document.getElementById('timerProgressCircle');
+            const circumference = 2 * Math.PI * 40;
+            const offset = circumference - (timerSeconds / totalTimerSeconds) * circumference;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerToggleBtn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+                btn.classList.replace('bg-amber-500', 'bg-brand-500');
+            } else {
+                isTimerRunning = true;
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+                btn.classList.replace('bg-brand-500', 'bg-amber-500');
+
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+                        btn.classList.replace('bg-amber-500', 'bg-brand-500');
+                        showToast(currentLang === 'bn' ? 'ফোকাস টাইম সম্পন্ন! এখন বিরতি নিন।' : 'Focus time complete! Take a break.', 'success');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = totalTimerSeconds;
+            const btn = document.getElementById('timerToggleBtn');
+            btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+            btn.classList.replace('bg-amber-500', 'bg-brand-500');
+            updateTimerDisplay();
+        }
+
+        function setTimerMode(mode) {
+            timerMode = mode;
+            if (mode === 'pomodoro') {
+                totalTimerSeconds = 25 * 60;
+                document.getElementById('modePomodoro').className = "px-2.5 py-1 rounded-lg bg-brand-500 text-white shadow-sm";
+                document.getElementById('modeBreak').className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900";
+            } else {
+                totalTimerSeconds = 5 * 60;
+                document.getElementById('modeBreak').className = "px-2.5 py-1 rounded-lg bg-brand-500 text-white shadow-sm";
+                document.getElementById('modePomodoro').className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900";
+            }
+            resetTimer();
+        }
+
+        // ===== Health Trackers =====
+        function addWater() {
+            waterIntake = parseFloat((waterIntake + 0.25).toFixed(2));
+            document.getElementById('waterVal').innerText = waterIntake;
+            saveState();
+            showToast(currentLang === 'bn' ? '+০.২৫ লিটার পানি যোগ হয়েছে' : '+0.25L water added', 'success');
+        }
+
+        function addSteps() {
+            stepCount += 250;
+            document.getElementById('stepsVal').innerText = stepCount.toLocaleString();
+            saveState();
+            showToast(currentLang === 'bn' ? '+২৫০ পদক্ষেপ যোগ হয়েছে' : '+250 steps added', 'success');
+        }
+
+        // ===== Finance Logic =====
+        function updateFinanceDisplay() {
+            document.getElementById('displayIncome').innerText = `৳ ${totalIncome.toLocaleString()}`;
+            document.getElementById('displayExpense').innerText = `৳ ${totalExpense.toLocaleString()}`;
+            document.getElementById('displayBalance').innerText = `৳ ${(totalIncome - totalExpense).toLocaleString()}`;
+        }
+
+        function renderFinanceLogs() {
+            const list = document.getElementById('financeLogsList');
+            list.innerHTML = '';
+
+            if (financeLogs.length === 0) {
+                list.innerHTML = `<div class="text-center text-xs text-slate-400 py-6">${currentLang === 'bn' ? 'কোনো লেনদেন নেই' : 'No transactions yet'}</div>`;
+                return;
+            }
+
+            financeLogs.forEach(log => {
+                const displayTitle = currentLang === 'en' ? (log.titleEn || log.title) : log.title;
+                const item = document.createElement('div');
+                item.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-xs";
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg ${log.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-500'} flex items-center justify-center">
+                            <i class="fa-solid ${log.type === 'income' ? 'fa-arrow-down-left' : 'fa-arrow-up-right'}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800">${displayTitle}</div>
+                            <div class="text-[10px] text-slate-400">${log.time}</div>
+                        </div>
+                    </div>
+                    <div class="font-extrabold ${log.type === 'income' ? 'text-emerald-600' : 'text-rose-500'}">
+                        ${log.type === 'income' ? '+' : '-'}৳ ${log.amount.toLocaleString()}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addFinanceLog() {
+            const type = document.getElementById('financeType').value;
+            const title = document.getElementById('financeTitle').value.trim() || (currentLang === 'bn' ? 'সাধারণ লেনদেন' : 'General');
+            const amount = parseFloat(document.getElementById('financeAmount').value);
+
+            if (!amount || isNaN(amount) || amount <= 0) {
+                showToast(currentLang === 'bn' ? 'সঠিক পরিমাণ দিন' : 'Enter valid amount', 'warning');
+                return;
+            }
+
+            if (type === 'income') totalIncome += amount;
+            else totalExpense += amount;
+
+            financeLogs.unshift({
+                id: Date.now(),
+                title,
+                titleEn: title,
+                amount,
+                type,
+                time: currentLang === 'bn' ? 'এখন' : 'Just now'
+            });
+
+            document.getElementById('financeTitle').value = '';
+            document.getElementById('financeAmount').value = '';
+            toggleModal('addFinanceModal');
+
+            updateFinanceDisplay();
+            renderFinanceLogs();
+            saveState();
+            showToast(currentLang === 'bn' ? 'লেনদেন সংরক্ষিত হয়েছে' : 'Transaction saved', 'success');
+        }
+
+        // ===== AI Coach =====
+        async function askAiCoach() {
+            const input = document.getElementById('aiQueryInput');
+            const query = input.value.trim();
+            const tipText = document.getElementById('aiTipText');
+
+            if (!query) return;
+
+            tipText.innerHTML = `<span class="animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ${currentLang === 'bn' ? 'Gemini AI চিন্তা করছে...' : 'Gemini AI thinking...'}</span>`;
+            input.value = '';
+
+            // ⚠️ এখানে আপনার Gemini API key দিন
+            const apiKey = "";
+            const systemPrompt = currentLang === 'bn' 
+                ? "আপনি Smart Life অ্যাপের একজন সহানুভূতিশীল স্বাস্থ্য, ফোকাস এবং উৎপাদনশীলতা বিশেষজ্ঞ AI Coach। সংক্ষিপ্ত, অনুপ্রেরণামূলক এবং সুনির্দিষ্ট উত্তর ২ লাইনে বাংলায় দিন।"
+                : "You are a compassionate AI Coach in the Smart Life app specializing in health, focus, and productivity. Give short, inspiring, specific answers in 2 lines.";
+            
+            // API key না থাকলে সরাসরি fallback
+            if (!apiKey) {
+                const fallbacks = currentLang === 'bn' ? [
+                    "নিয়মিত পানি পান এবং ফোকাস টাইমার ব্যবহারে আপনার কর্মক্ষমতা ৪০% বৃদ্ধি পেতে পারে!",
+                    "আজকের কাজের তালিকা থেকে আরেকটি কাজ সম্পন্ন করুন, আপনার দিনটি আরও সুন্দর হবে।",
+                    "প্রতি ২০ মিনিট পরপর চোখকে বিশ্রাম দিন এবং একটু হালকা স্ট্রেচিং করুন।"
+                ] : [
+                    "Regular water intake and using the focus timer can boost your productivity by 40%!",
+                    "Complete one more task from today's list, your day will be even better.",
+                    "Rest your eyes every 20 minutes and do some light stretching."
+                ];
+                setTimeout(() => {
+                    tipText.innerText = `"${fallbacks[Math.floor(Math.random() * fallbacks.length)]}"`;
+                }, 800);
+                return;
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const aiReply = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (aiReply) {
+                    tipText.innerText = `"${aiReply.trim()}"`;
+                } else {
+                    throw new Error("No response");
+                }
+            } catch (error) {
+                const fallbacks = currentLang === 'bn' ? [
+                    "নিয়মিত পানি পান এবং ফোকাস টাইমার ব্যবহারে আপনার কর্মক্ষমতা ৪০% বৃদ্ধি পেতে পারে!",
+                    "আজকের কাজের তালিকা থেকে আরেকটি কাজ সম্পন্ন করুন, আপনার দিনটি আরও সুন্দর হবে।"
+                ] : [
+                    "Regular water intake and using the focus timer can boost your productivity by 40%!",
+                    "Complete one more task from today's list."
+                ];
+                tipText.innerText = `"${fallbacks[Math.floor(Math.random() * fallbacks.length)]}"`;
+            }
+        }
+
+        // ===== Modal Utility =====
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.toggle('hidden');
+        }
+
+        // Enter key support for AI input
+        document.getElementById('aiQueryInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') askAiCoach();
+        });
+    </script>
+</body>
+</html>
